@@ -4,6 +4,7 @@ import com.datasolutions.eventstreaming.DTOs.DestinationDTO;
 import com.datasolutions.eventstreaming.DTOs.EventDTO;
 import com.datasolutions.eventstreaming.config.LoggerController;
 import com.datasolutions.eventstreaming.controllers.request.EventSendRequest;
+import com.datasolutions.eventstreaming.controllers.response.EventAckResponse;
 import com.datasolutions.eventstreaming.entities.Destination;
 import com.datasolutions.eventstreaming.mapper.EventMapper;
 import com.datasolutions.eventstreaming.repositories.DestinationRepository;
@@ -17,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import static com.datasolutions.eventstreaming.mapper.EventMapper.mapToEvent;
+import static com.datasolutions.eventstreaming.mapper.EventMapper.mapToEventAckResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -26,10 +28,10 @@ public class EventServiceImpl implements EventService {
     private final DestinationRepository destinationRepository;
 
     @Override
-    public Mono<Boolean> saveEvent(EventSendRequest eventSendRequest) {
+    public Mono<EventAckResponse> saveEvent(EventSendRequest eventSendRequest) {
         return Mono.just(eventSendRequest)
                 .map(event -> eventRepository.save(mapToEvent(event)))
-                .map(event -> Boolean.TRUE)
+                .map(event -> mapToEventAckResponse(event))
                 .onErrorMap(throwable -> {
                     LoggerController.logger.info("Error in storing event");
                     throw new RuntimeException();
@@ -47,6 +49,7 @@ public class EventServiceImpl implements EventService {
     public void increaseRetryCountOrDiscard(EventDTO eventDTO, Destination destination) {
         destination.setRetryCount(destination.getRetryCount() + 1);
         if (destination.getRetryCount() >= destination.getRetryThreshold()) {
+            destination.setRetryCount(0);
             destination.setCursor(eventDTO.getCreatedDate());
         }
         destinationRepository.save(destination);
@@ -63,7 +66,7 @@ public class EventServiceImpl implements EventService {
                 .bodyValue(eventDTO)
                 .retrieve()
                 .onStatus(HttpStatus::isError, clientResponse -> {
-                    LoggerController.logger.info("Error occured");
+                    LoggerController.logger.info("Error in sending event to destination = " + destination.getDestinationId());
                     increaseRetryCountOrDiscard(eventDTO, destination);
                     return Mono.empty();
                 })

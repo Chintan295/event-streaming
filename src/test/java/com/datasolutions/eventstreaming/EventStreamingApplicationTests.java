@@ -10,4 +10,10 @@ class EventStreamingApplicationTests {
 	void contextLoads() {
 	}
 
+
+	@Test
+	void SendEvent() {
+
+	}
+
 }

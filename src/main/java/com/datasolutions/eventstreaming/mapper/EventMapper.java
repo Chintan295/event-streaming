@@ -2,6 +2,7 @@ package com.datasolutions.eventstreaming.mapper;
 
 import com.datasolutions.eventstreaming.DTOs.EventDTO;
 import com.datasolutions.eventstreaming.controllers.request.EventSendRequest;
+import com.datasolutions.eventstreaming.controllers.response.EventAckResponse;
 import com.datasolutions.eventstreaming.entities.Event;
 
 import java.util.Date;
@@ -30,6 +31,15 @@ public class EventMapper {
                 .sourceId(eventSendRequest.getSourceId())
                 .payload(eventSendRequest.getPayload())
                 .createdDate(new Date())
+                .build();
+    }
+
+    public static EventAckResponse mapToEventAckResponse(Event event) {
+        return EventAckResponse.builder()
+                .eventId(event.getEventId())
+                .payload(event.getPayload())
+                .createdDate(event.getCreatedDate())
+                .sourceId(event.getSourceId())
                 .build();
     }
 }

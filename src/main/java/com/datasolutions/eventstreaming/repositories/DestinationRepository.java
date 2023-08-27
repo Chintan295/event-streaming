@@ -8,6 +8,6 @@ import java.util.Date;
 import java.util.Optional;
 
 @Repository
-public interface DestinationRepository extends CrudRepository<Destination, Long> {
+public interface DestinationRepository extends CrudRepository<Destination, String> {
     Optional<Destination> findByDestinationId(String destinationId);
 }
