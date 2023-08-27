@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.stereotype.Indexed;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -12,7 +13,7 @@ import java.util.Date;
 @Builder
 @Data
 @Entity
-@Table(name = "events")
+@Table(name = "events", indexes = @Index(name="create_date_index",columnList = "createdDate"))
 @AllArgsConstructor
 @NoArgsConstructor
 public class Event {
@@ -23,7 +24,6 @@ public class Event {
     private String sourceId;
     private String payload;
 
-    // TODO: Add index
     @CreatedDate
     private Date createdDate;
 }
