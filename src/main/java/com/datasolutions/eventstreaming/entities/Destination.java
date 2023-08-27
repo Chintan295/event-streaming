@@ -1,25 +1,24 @@
 package com.datasolutions.eventstreaming.entities;
 
-import lombok.Builder;
+import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+import java.util.Date;
 
 @Builder
-public class Destination extends BaseEntity {
+@Data
+@Entity
+@Table(name = "destinations")
+@AllArgsConstructor
+@NoArgsConstructor
+public class Destination {
+    @Id
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid")
     private String destinationId;
-    private String destinationEndPoint;
-
-    public String getDestinationId() {
-        return destinationId;
-    }
-
-    public String getDestinationEndPoint() {
-        return destinationEndPoint;
-    }
-
-    public void setDestinationEndPoint(String destinationEndPoint) {
-        this.destinationEndPoint = destinationEndPoint;
-    }
-
-    public void setDestinationId(String destinationId) {
-        this.destinationId = destinationId;
-    }
+    private String endPoint;
+    private Date cursor;
+    private long retryCount;
+    private long retryThreshold;
 }

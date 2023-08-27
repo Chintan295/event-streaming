@@ -1,43 +1,28 @@
 package com.datasolutions.eventstreaming.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+
+import javax.persistence.*;
+import java.util.Date;
 
 @Builder
-public class Event extends BaseEntity {
-    private String eventId;
-    private String senderId;
+@Data
+@Entity
+@Table(name = "events")
+@AllArgsConstructor
+@NoArgsConstructor
+public class Event {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.TABLE)
+    private Long eventId;
+    private String sourceId;
     private String payload;
-    private int retryCount;
 
-    public String getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
-    }
-
-    public String getSenderId() {
-        return senderId;
-    }
-
-    public void setSenderId(String senderId) {
-        this.senderId = senderId;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
-    public int getRetryCount() {
-        return retryCount;
-    }
-
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-    }
+    @CreatedDate
+    private Date createdDate;
 }
