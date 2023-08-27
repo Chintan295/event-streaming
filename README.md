@@ -21,11 +21,6 @@
 * Build application.jar file
 
         mvn clean install
-    
-* run jar file
-
-        java -jar ./target/event-streaming-0.0.1-SNAPSHOT.jar
-
 
 * Add destination
     
@@ -51,6 +46,9 @@
     
         curl -X POST -H "Content-Type: application/json" -d '{"sourceId":"src1","payload":"Hello Destinations !!!"}' http://localhost:8080/api/event/send
 
+* run jar file
+
+        java -jar ./target/event-streaming-0.0.1-SNAPSHOT.jar
 
 ### Architecture
 
