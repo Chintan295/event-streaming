@@ -11,6 +11,12 @@
 
     brew services start postgresql;
 
+* change user and db in application.properties
+
+        spring.datasource.url=jdbc:postgresql://<host>:<port>/<db>
+        spring.datasource.username=<username>
+        spring.datasource.password=<password>
+
 * create 'destinations' table
 
 
@@ -49,6 +55,25 @@
     java -jar ./target/event-streaming-0.0.1-SNAPSHOT.jar
 
 
+* Add destination
+    
+    
+        curl -X POST -H "Content-Type: application/json" -d '{
+            "destinationId":"<destinationId>",
+            "endPoint": "<destinationUrl>",
+            "retryCount": 0,
+            "retryThreshold": 10,
+            "retryTimeout": 20000}' http://localhost:8080/api/destination-config/add
+
+
+* Map source-destinations
+
+        curl -X POST -H "Content-Type: application/json" -d '{
+          "sourceId": "<sourceId>",
+          "destinationId": "<destinationId>"
+          }' http://localhost:8080/api/source-destination/add
+
+        
 * Send event
 
     
@@ -60,7 +85,7 @@
 ![Architecture](Event-delivery.png)
 
 ### Features
-* Sender can send events to all the destinations
+* Sender can send events to multiple specific the destinations
 * All events will be sent in FIFO order
 * Once event ingested, it will be available in system in case of application crash
 * All the destinations can be configured for retry in isolation
