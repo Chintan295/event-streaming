@@ -9,6 +9,7 @@ import com.datasolutions.eventstreaming.entities.DestinationConfig;
 import com.datasolutions.eventstreaming.mapper.EventMapper;
 import com.datasolutions.eventstreaming.repositories.DestinationConfigRepository;
 import com.datasolutions.eventstreaming.repositories.EventRepository;
+import com.datasolutions.eventstreaming.repositories.SourceDestinationMapRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final DestinationConfigRepository destinationConfigRepository;
+    private final SourceDestinationMapRepository sourceDestinationMapRepository;
 
     @Override
     public Mono<EventAckResponse> saveEvent(EventSendRequest eventSendRequest) {
@@ -58,6 +60,17 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Mono<String> sendEventToDestination(EventDTO eventDTO, DestinationConfig destinationConfig) {
+
+        long isValid = sourceDestinationMapRepository.countBySourceIdAndDestinationId(
+                eventDTO.getSourceId(),
+                destinationConfig.getDestinationId());
+
+        if(isValid == 0) {
+            destinationConfig.setCursor(eventDTO.getCreatedDate());
+            destinationConfigRepository.save(destinationConfig);
+            return Mono.empty();
+        }
+
         LoggerController.logger.info("Sending event= " + eventDTO.toString() + "to url=" + destinationConfig.getEndPoint());
         WebClient webClient = WebClient.builder()
                 .baseUrl(destinationConfig.getEndPoint())

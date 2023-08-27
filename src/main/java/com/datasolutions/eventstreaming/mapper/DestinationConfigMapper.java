@@ -12,6 +12,7 @@ public class DestinationConfigMapper {
                 .retryCount(destinationConfigDTO.getRetryCount())
                 .cursor(destinationConfigDTO.getCursor())
                 .retryTimeout(destinationConfigDTO.getRetryTimeout())
+                .retryThreshold(destinationConfigDTO.getRetryThreshold())
                 .build();
     }
 
@@ -22,6 +23,7 @@ public class DestinationConfigMapper {
                 .retryCount(destinationConfig.getRetryCount())
                 .cursor(destinationConfig.getCursor())
                 .retryTimeout(destinationConfig.getRetryTimeout())
+                .retryThreshold(destinationConfig.getRetryThreshold())
                 .build();
     }
 }

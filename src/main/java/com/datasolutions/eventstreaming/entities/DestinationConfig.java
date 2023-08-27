@@ -14,8 +14,6 @@ import java.util.Date;
 @NoArgsConstructor
 public class DestinationConfig {
     @Id
-    @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name = "system-uuid", strategy = "uuid")
     private String destinationId;
     private String endPoint;
     private Date cursor;
