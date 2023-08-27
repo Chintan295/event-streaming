@@ -23,6 +23,7 @@ public class Event {
     private String sourceId;
     private String payload;
 
+    // TODO: Add index
     @CreatedDate
     private Date createdDate;
 }

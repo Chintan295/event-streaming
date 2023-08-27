@@ -14,5 +14,4 @@ public class Response <T>{
     private HttpStatus status;
     private  T data;
     private String errorMessage;
-
 }

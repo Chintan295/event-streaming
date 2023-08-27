@@ -6,10 +6,11 @@ import lombok.Data;
 import java.util.Date;
 @Data
 @Builder
-public class DestinationDTO {
+public class DestinationConfigDTO {
     private String destinationId;
     private String endPoint;
     private Date cursor;
     private long retryCount;
     private long retryThreshold;
+    private long retryTimeout;
 }

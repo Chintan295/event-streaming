@@ -1,13 +1,13 @@
 package com.datasolutions.eventstreaming.services;
 
-import com.datasolutions.eventstreaming.DTOs.DestinationDTO;
+import com.datasolutions.eventstreaming.DTOs.DestinationConfigDTO;
 import com.datasolutions.eventstreaming.DTOs.EventDTO;
 import com.datasolutions.eventstreaming.config.LoggerController;
 import com.datasolutions.eventstreaming.controllers.request.EventSendRequest;
 import com.datasolutions.eventstreaming.controllers.response.EventAckResponse;
-import com.datasolutions.eventstreaming.entities.Destination;
+import com.datasolutions.eventstreaming.entities.DestinationConfig;
 import com.datasolutions.eventstreaming.mapper.EventMapper;
-import com.datasolutions.eventstreaming.repositories.DestinationRepository;
+import com.datasolutions.eventstreaming.repositories.DestinationConfigRepository;
 import com.datasolutions.eventstreaming.repositories.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -25,7 +25,7 @@ import static com.datasolutions.eventstreaming.mapper.EventMapper.mapToEventAckR
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-    private final DestinationRepository destinationRepository;
+    private final DestinationConfigRepository destinationConfigRepository;
 
     @Override
     public Mono<EventAckResponse> saveEvent(EventSendRequest eventSendRequest) {
@@ -39,47 +39,49 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Mono<EventDTO> getNextEventByDestination(DestinationDTO destinationDTO) {
-        LoggerController.logger.info("Getting next event after " + destinationDTO.getCursor());
-        return Mono.just(eventRepository.findFirstByCreatedDateAfter(destinationDTO.getCursor()))
+    public Mono<EventDTO> getNextEventByDestination(DestinationConfigDTO destinationConfigDTO) {
+        return Mono.just(eventRepository.findFirstByCreatedDateAfter(destinationConfigDTO.getCursor()))
                 .flatMap(event -> event.map(Mono::just).orElseGet(Mono::empty))
                 .map(EventMapper::mapToEventDTO);
     }
 
-    public void increaseRetryCountOrDiscard(EventDTO eventDTO, Destination destination) {
-        destination.setRetryCount(destination.getRetryCount() + 1);
-        if (destination.getRetryCount() >= destination.getRetryThreshold()) {
-            destination.setRetryCount(0);
-            destination.setCursor(eventDTO.getCreatedDate());
+    public void increaseRetryCountOrDiscard(EventDTO eventDTO, DestinationConfig destinationConfig) {
+        destinationConfig.setRetryCount(destinationConfig.getRetryCount() + 1);
+        if (destinationConfig.getRetryCount() >= destinationConfig.getRetryThreshold()) {
+            destinationConfig.setRetryCount(0);
+            destinationConfig.setCursor(eventDTO.getCreatedDate());
+            destinationConfigRepository.save(destinationConfig);
+            return;
         }
-        destinationRepository.save(destination);
+        destinationConfigRepository.save(destinationConfig);
     }
 
     @Override
-    public Mono<String> sendEventToDestination(EventDTO eventDTO, Destination destination) {
-        LoggerController.logger.info("Sending event= " + eventDTO.toString() + "to url=" + destination.getEndPoint());
+    public Mono<String> sendEventToDestination(EventDTO eventDTO, DestinationConfig destinationConfig) {
+        LoggerController.logger.info("Sending event= " + eventDTO.toString() + "to url=" + destinationConfig.getEndPoint());
         WebClient webClient = WebClient.builder()
-                .baseUrl(destination.getEndPoint())
+                .baseUrl(destinationConfig.getEndPoint())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
         return webClient.post()
                 .bodyValue(eventDTO)
                 .retrieve()
                 .onStatus(HttpStatus::isError, clientResponse -> {
-                    LoggerController.logger.info("Error in sending event to destination = " + destination.getDestinationId());
-                    increaseRetryCountOrDiscard(eventDTO, destination);
+                    LoggerController.logger.info("Error in sending event to destination = " + destinationConfig.getDestinationId());
+                    increaseRetryCountOrDiscard(eventDTO, destinationConfig);
                     return Mono.empty();
                 })
                 .onStatus(HttpStatus::is2xxSuccessful, clientResponse -> {
                     LoggerController.logger.info("Event sent successfully");
-                    destination.setCursor(eventDTO.getCreatedDate());
-                    destinationRepository.save(destination);
+                    destinationConfig.setRetryCount(0);
+                    destinationConfig.setCursor(eventDTO.getCreatedDate());
+                    destinationConfigRepository.save(destinationConfig);
                     return Mono.empty();
                 })
                 .bodyToMono(String.class)
                 .onErrorResume(error -> {
                     LoggerController.logger.info("Error" + error.getLocalizedMessage());
-                    increaseRetryCountOrDiscard(eventDTO, destination);
+                    increaseRetryCountOrDiscard(eventDTO, destinationConfig);
                     return Mono.empty();
                 });
     }

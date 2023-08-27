@@ -9,10 +9,10 @@ import java.util.Date;
 @Builder
 @Data
 @Entity
-@Table(name = "destinations")
+@Table(name = "destinations_config")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Destination {
+public class DestinationConfig {
     @Id
     @GeneratedValue(generator = "system-uuid")
     @GenericGenerator(name = "system-uuid", strategy = "uuid")
@@ -21,4 +21,5 @@ public class Destination {
     private Date cursor;
     private long retryCount;
     private long retryThreshold;
+    private long retryTimeout;
 }
