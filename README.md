@@ -6,6 +6,19 @@
 
 ### Build Setup
 
+1. **Using Docker compose**
+* build package
+
+ 
+    mvn clean package -DskipTests
+
+* Build and run java_app
+
+    
+    docker compose up java_app
+
+2. **Manual setup**
+
 * start postgresql
 
 
